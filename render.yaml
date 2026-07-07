@@ -5,7 +5,7 @@ services:
   # ============================================
   - type: web
     name: housing-price-backend
-    runtime: image
+    runtime: docker
     repo: https://github.com/naveeenkumar842/housing-price-predictor
     plan: free
     dockerfilePath: ./backend/Dockerfile
@@ -28,7 +28,7 @@ services:
   # ============================================
   - type: web
     name: housing-price-frontend
-    runtime: image
+    runtime: docker
     repo: https://github.com/naveeenkumar842/housing-price-predictor
     plan: free
     dockerfilePath: ./frontend/Dockerfile
@@ -44,4 +44,3 @@ services:
     healthCheckPath: /
     autoDeploy: true
     numInstances: 1
-
