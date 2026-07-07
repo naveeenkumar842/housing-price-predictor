@@ -52,8 +52,8 @@ build/
 Thumbs.db
 
 # Project specific
-backend/models/*.pkl
-backend/data/*.csv
+# backend/models/*.pkl
+# backend/data/*.csv
 frontend/build/
 frontend/.env
 *.log
