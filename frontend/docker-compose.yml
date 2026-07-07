@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Backend service - note the name "backend" matches nginx proxy_pass
   backend:
     build:
       context: ./backend
@@ -9,41 +8,20 @@ services:
     container_name: backend
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend/data:/app/data
-      - ./backend/models:/app/models
-      - ./backend/logs:/app/logs
     environment:
-      - PYTHONUNBUFFERED=1
       - ENVIRONMENT=production
-      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
     restart: unless-stopped
-    networks:
-      - housing-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
 
-  # Frontend service - name matches docker-compose service
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "3000:80"
-    depends_on:
-      - backend
+      - "80:80"
     environment:
       - REACT_APP_API_URL=http://backend:8000
+    depends_on:
+      - backend
     restart: unless-stopped
-    networks:
-      - housing-network
-
-networks:
-  housing-network:
-    driver: bridge
-    name: housing-network
