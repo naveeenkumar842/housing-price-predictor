@@ -1,5 +1,5 @@
+# render.yaml
 services:
-  # Backend API Service
   - type: web
     name: housing-api
     runtime: docker
@@ -10,15 +10,13 @@ services:
     envVars:
       - key: ENVIRONMENT
         value: production
-      - key: PYTHONUNBUFFERED
-        value: "1"
     healthCheckPath: /health
     autoDeploy: true
-    numInstances: 1
 
-  # Frontend Web Service
+# render.yaml
+services:
   - type: web
-    name: housing-frontend
+    name: frontend
     runtime: static
     repo: https://github.com/naveeenkumar842/housing-price-predictor
     plan: free
@@ -30,11 +28,3 @@ services:
     envVars:
       - key: REACT_APP_API_URL
         value: https://housing-api.onrender.com
-    headers:
-      - path: /*
-        name: X-Frame-Options
-        value: SAMEORIGIN
-    routes:
-      - type: rewrite
-        source: /api/*
-        destination: https://housing-api.onrender.com/$1
