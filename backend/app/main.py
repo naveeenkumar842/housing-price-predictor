@@ -16,12 +16,12 @@ from app.utils import format_inr, load_training_data
 app = FastAPI(
     title="Housing Price Prediction API",
     description="API for predicting housing prices in Indian Rupees (₹)",
-    version="1.0.0"
+    version="1.0.0",
+    # Add API prefix
+    root_path="/api"
 )
 
-# ============================================
-# CORS Configuration - FIXED
-# ============================================
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -29,23 +29,15 @@ app.add_middleware(
         "http://localhost:3001",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
-        "*"  # Allow all origins for development
+        "http://frontend:80",
+        "http://frontend-service:80",
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=[
-        "Accept",
-        "Accept-Encoding",
-        "Authorization",
-        "Content-Type",
-        "Origin",
-        "User-Agent",
-        "X-Requested-With",
-        "Access-Control-Request-Method",
-        "Access-Control-Request-Headers"
-    ],
-    expose_headers=["Content-Length", "Content-Type"],
-    max_age=3600,  # Cache preflight results for 1 hour
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # ============================================

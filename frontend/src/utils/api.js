@@ -1,7 +1,8 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Use relative URL since nginx proxies /api
+const API_BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,41 +11,19 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   timeout: 30000,
-  withCredentials: false, // Set to false if not using cookies
 });
 
-// Add request interceptor for logging
-api.interceptors.request.use(
-  (config) => {
-    console.log(`📤 ${config.method.toUpperCase()} ${config.url}`);
-    return config;
-  },
-  (error) => {
-    console.error('Request error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// Add response interceptor for error handling
+// Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => {
-    console.log(`📥 ${response.status} ${response.config.url}`);
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response) {
-      // The request was made and the server responded with a status code
       const message = error.response.data?.detail || error.response.data?.message || 'Server error';
-      console.error(`❌ ${error.response.status}: ${message}`);
       toast.error(message);
     } else if (error.request) {
-      // The request was made but no response was received
-      console.error('❌ No response from server');
-      toast.error('Cannot connect to server. Please check if backend is running.');
+      toast.error('Cannot connect to server');
     } else {
-      // Something happened in setting up the request
-      console.error('❌ Request error:', error.message);
-      toast.error('Request failed. Please try again.');
+      toast.error('Request failed');
     }
     return Promise.reject(error);
   }
