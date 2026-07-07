@@ -21,19 +21,33 @@ def format_inr(amount):
 def train_and_save_model():
     """Train the model and save it to disk"""
     
-    # Get the current file's directory
-    current_dir = Path(__file__).parent
-    app_dir = current_dir.parent
+    # Check if model already exists
+    model_path = Path('/app/models/model.pkl')
+    scaler_path = Path('/app/models/scaler.pkl')
+    metrics_path = Path('/app/models/metrics.pkl')
+    
+    if model_path.exists() and scaler_path.exists() and metrics_path.exists():
+        print("✅ Model files already exist. Loading existing model...")
+        try:
+            model = joblib.load(model_path)
+            scaler = joblib.load(scaler_path)
+            metrics = joblib.load(metrics_path)
+            print("✅ Model loaded successfully!")
+            return model, scaler, metrics
+        except Exception as e:
+            print(f"⚠️ Error loading existing model: {e}")
+            print("🔄 Will retrain model...")
+    
+    # If model doesn't exist or failed to load, try to find dataset
+    print("🔄 Training new model...")
     
     # Try multiple possible paths for the dataset
     possible_paths = [
-        Path('/app/data/House Price Dataset.csv'),  # Docker path
-        Path('/backend/data/House Price Dataset.csv'),  # Docker path alternative
-        Path('data/House Price Dataset.csv'),  # Relative to app
-        Path(app_dir / 'data' / 'House Price Dataset.csv'),  # Absolute path
-        Path('backend/data/House Price Dataset.csv'),  # From root
-        Path('../data/House Price Dataset.csv'),  # Original path
-        Path('./data/House Price Dataset.csv'),  # Current directory
+        Path('/app/data/House Price Dataset.csv'),
+        Path('/app/backend/data/House Price Dataset.csv'),
+        Path('data/House Price Dataset.csv'),
+        Path('../data/House Price Dataset.csv'),
+        Path('./data/House Price Dataset.csv'),
     ]
     
     data_path = None
@@ -44,44 +58,29 @@ def train_and_save_model():
             break
     
     if data_path is None:
-        print("❌ Dataset not found. Looking in all possible locations...")
-        # Search for the dataset
-        for root, dirs, files in os.walk('/app'):
-            for file in files:
-                if file == 'House Price Dataset.csv':
-                    data_path = Path(root) / file
-                    print(f"✅ Found dataset at: {data_path}")
-                    break
-            if data_path:
-                break
-        
-        if data_path is None:
-            print("⚠️ Dataset not found. Creating sample data for demonstration...")
-            # Create sample data for demonstration
-            np.random.seed(42)
-            n_samples = 50
-            sample_data = {
-                'id': range(1, n_samples + 1),
-                'square_footage': np.random.randint(800, 3000, n_samples),
-                'bedrooms': np.random.randint(1, 5, n_samples),
-                'bathrooms': np.random.randint(1, 4, n_samples),
-                'year_built': np.random.randint(1950, 2020, n_samples),
-                'lot_size': np.random.randint(3000, 12000, n_samples),
-                'distance_to_city_center': np.random.uniform(1, 10, n_samples),
-                'school_rating': np.random.uniform(5, 10, n_samples),
-                'price': np.random.randint(150000, 400000, n_samples)
-            }
-            df = pd.DataFrame(sample_data)
-            print(f"✅ Created sample dataset with {len(df)} rows")
-        else:
-            df = pd.read_csv(data_path)
-            print(f"✅ Loaded dataset with {len(df)} rows")
+        print("❌ Dataset not found. Creating sample data for demonstration...")
+        # Create sample data for demonstration
+        np.random.seed(42)
+        n_samples = 50
+        sample_data = {
+            'id': range(1, n_samples + 1),
+            'square_footage': np.random.randint(800, 3000, n_samples),
+            'bedrooms': np.random.randint(1, 5, n_samples),
+            'bathrooms': np.random.randint(1, 4, n_samples),
+            'year_built': np.random.randint(1950, 2020, n_samples),
+            'lot_size': np.random.randint(3000, 12000, n_samples),
+            'distance_to_city_center': np.random.uniform(1, 10, n_samples),
+            'school_rating': np.random.uniform(5, 10, n_samples),
+            'price': np.random.randint(150000, 400000, n_samples)
+        }
+        df = pd.DataFrame(sample_data)
+        print(f"✅ Created sample dataset with {len(df)} rows")
     else:
         # Read the CSV file
         df = pd.read_csv(data_path)
         print(f"✅ Loaded dataset with {len(df)} rows")
     
-    # Check if 'id' column exists
+    # Prepare features and target
     if 'id' in df.columns:
         X = df.drop(['id', 'price'], axis=1)
     else:
@@ -102,19 +101,17 @@ def train_and_save_model():
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     
-    # Train Linear Regression model
+    # Train models
     lr_model = LinearRegression()
     lr_model.fit(X_train_scaled, y_train)
     
-    # Train Random Forest model
     rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
     rf_model.fit(X_train_scaled, y_train)
     
-    # Make predictions
+    # Evaluate
     y_pred_lr = lr_model.predict(X_test_scaled)
     y_pred_rf = rf_model.predict(X_test_scaled)
     
-    # Calculate metrics
     r2_lr = r2_score(y_test, y_pred_lr)
     rmse_lr = np.sqrt(mean_squared_error(y_test, y_pred_lr))
     mae_lr = mean_absolute_error(y_test, y_pred_lr)
@@ -151,7 +148,7 @@ def train_and_save_model():
             'model_type': 'Linear Regression',
             'r2_score': r2_lr,
             'rmse': rmse_lr,
-            'mae': mae_lr
+            'mae': mae_rl
         }
         print(f"\n✅ Linear Regression selected as best model")
     
@@ -183,7 +180,6 @@ def train_and_save_model():
     
     print(f"\n✅ Model saved successfully!")
     print(f"Training samples: {len(X_train)}")
-    print(f"Model metrics saved in INR format")
     print("="*50)
     
     return best_model, scaler, metrics

@@ -22,6 +22,7 @@ COPY backend/ .
 
 # Copy data folder
 COPY data/ /app/data/
+COPY models/ /app/models/
 
 # Create directories
 RUN mkdir -p /app/data /app/models /app/logs
