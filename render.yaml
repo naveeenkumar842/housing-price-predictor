@@ -1,0 +1,67 @@
+# render.yaml
+services:
+  # ============================================
+  # Backend API Service
+  # ============================================
+  - type: web
+    name: housing-price-backend
+    runtime: image
+    repo: https://github.com/naveeenkumar842/housing-price-predictor/
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: CORS_ORIGINS
+        value: "https://housing-price-frontend.onrender.com"
+    healthCheckPath: /health
+    autoDeploy: true
+    buildCommand: |
+      pip install --upgrade pip setuptools wheel
+      pip install -r requirements.txt
+      python -m app.train_model
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    numInstances: 1
+
+  # ============================================
+  # Frontend Web Service
+  # ============================================
+  - type: web
+    name: housing-price-frontend
+    runtime: image
+    repo: https://github.com/naveeenkumar842/housing-price-predictor/
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          name: housing-price-backend
+          type: web
+          property: host
+      - key: REACT_APP_ENV
+        value: production
+    healthCheckPath: /
+    autoDeploy: true
+    buildCommand: |
+      npm install
+      npm run build
+    startCommand: nginx -g "daemon off;"
+    numInstances: 1
+
+  # ============================================
+  # PostgreSQL Database (Optional)
+  # ============================================
+  - type: postgresql
+    name: housing-db
+    plan: free
+    databaseName: housing_db
+    user: housing_user
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
