@@ -1,7 +1,7 @@
 # Root Dockerfile (docker-compose style)
 FROM python:3.11-slim AS backend
 
-WORKDIR /backend
+WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -17,12 +17,22 @@ RUN pip install --upgrade pip setuptools wheel
 COPY backend/requirements.txt .
 RUN pip install -r requirements.txt
 
+# Copy the entire backend folder
 COPY backend/ .
 
+# Copy data folder
+COPY data/ /app/data/
+
+# Create directories
+RUN mkdir -p /app/data /app/models /app/logs
+
+# Debug: List files
+RUN ls -la /app/
+RUN ls -la /app/data/ || echo "Data directory not found"
+
 # Train the model
-RUN mkdir -p /backend/data /backend/models /backend/logs
 RUN python -m app.train_model
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "cd /backend && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
