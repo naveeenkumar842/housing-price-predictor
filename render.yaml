@@ -6,11 +6,7 @@ services:
   - type: web
     name: housing-price-backend
     runtime: image
-<<<<<<< HEAD
     repo: https://github.com/naveeenkumar842/housing-price-predictor
-=======
-    repo: https://github.com/naveeenkumar842/housing-price-predictor/
->>>>>>> 6b44c468d502bdec3d6481408f2a7107fc4afa13
     plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
@@ -25,14 +21,6 @@ services:
         value: "https://housing-price-frontend.onrender.com"
     healthCheckPath: /health
     autoDeploy: true
-<<<<<<< HEAD
-=======
-    buildCommand: |
-      pip install --upgrade pip setuptools wheel
-      pip install -r requirements.txt
-      python -m app.train_model
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
->>>>>>> 6b44c468d502bdec3d6481408f2a7107fc4afa13
     numInstances: 1
 
   # ============================================
@@ -41,11 +29,7 @@ services:
   - type: web
     name: housing-price-frontend
     runtime: image
-<<<<<<< HEAD
     repo: https://github.com/naveeenkumar842/housing-price-predictor
-=======
-    repo: https://github.com/naveeenkumar842/housing-price-predictor/
->>>>>>> 6b44c468d502bdec3d6481408f2a7107fc4afa13
     plan: free
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
@@ -59,25 +43,5 @@ services:
         value: production
     healthCheckPath: /
     autoDeploy: true
-<<<<<<< HEAD
     numInstances: 1
 
-=======
-    buildCommand: |
-      npm install
-      npm run build
-    startCommand: nginx -g "daemon off;"
-    numInstances: 1
-
-  # ============================================
-  # PostgreSQL Database (Optional)
-  # ============================================
-  - type: postgresql
-    name: housing-db
-    plan: free
-    databaseName: housing_db
-    user: housing_user
-    ipAllowList:
-      - source: 0.0.0.0/0
-        description: everywhere
->>>>>>> 6b44c468d502bdec3d6481408f2a7107fc4afa13
