@@ -1,14 +1,49 @@
+# render.yaml
 services:
+  # ============================================
+  # Backend API Service
+  # ============================================
   - type: web
-    name: housing-price-predictor
+    name: housing-price-backend
     runtime: docker
     repo: https://github.com/naveeenkumar842/housing-price-predictor
     plan: free
-    dockerComposePath: docker-compose.yml
+    dockerfilePath: backend/Dockerfile
+    dockerContext: .
     envVars:
       - key: ENVIRONMENT
         value: production
-      - key: REACT_APP_API_URL
-        value: https://housing-price-backend.onrender.com
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: CORS_ORIGINS
+        value: "https://housing-price-frontend.onrender.com"
     healthCheckPath: /health
     autoDeploy: true
+    numInstances: 1
+    buildFilter:
+      paths:
+      - backend/**
+
+  # ============================================
+  # Frontend Web Service
+  # ============================================
+  - type: web
+    name: housing-price-frontend
+    runtime: docker
+    repo: https://github.com/naveeenkumar842/housing-price-predictor
+    plan: free
+    dockerfilePath: frontend/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://housing-price-backend.onrender.com
+      - key: REACT_APP_ENV
+        value: production
+    healthCheckPath: /
+    autoDeploy: true
+    numInstances: 1
+    buildFilter:
+      paths:
+      - frontend/**
