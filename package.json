@@ -1,0 +1,17 @@
+{
+  "name": "housing-price-predictor",
+  "version": "1.0.0",
+  "description": "Housing Price Prediction System with React + FastAPI",
+  "scripts": {
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "backend": "cd backend && uvicorn app.main:app --reload --port 8000",
+    "frontend": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up",
+    "docker:down": "docker-compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,0 +1,24 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Docker images
+      run: |
+        docker-compose build
+    
+    - name: Push to Docker Hub (optional)
+      run: |
+        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        docker tag housing-price-predictor_backend yourusername/housing-backend:latest
+        docker tag housing-price-predictor_frontend yourusername/housing-frontend:latest
+        docker push yourusername/housing-backend:latest
+        docker push yourusername/housing-frontend:latest

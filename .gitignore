@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+*.pkl
+*.log
+*.csv
+*.xlsx
+
+# Docker
+*.pid
+*.pid.lock
+*.sqlite3
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+*.tsbuildinfo
+.npm
+.yarn
+.yarn-integrity
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.cache
+.parcel-cache
+.next
+out/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Project specific
+backend/models/*.pkl
+backend/data/*.csv
+frontend/build/
+frontend/.env
+*.log
