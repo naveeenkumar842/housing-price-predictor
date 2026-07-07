@@ -3,14 +3,14 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Copy package files
+# Copy and install dependencies
 COPY package*.json ./
 RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the app
 RUN npm run build
 
 # Production stage
@@ -19,7 +19,7 @@ FROM nginx:alpine
 # Copy built assets
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Create nginx configuration
+# Create nginx config
 RUN echo 'server { \
     listen 80; \
     server_name localhost; \
@@ -32,7 +32,7 @@ RUN echo 'server { \
     } \
     \
     location /api/ { \
-        proxy_pass ${REACT_APP_API_URL}/; \
+        proxy_pass http://backend:8000/; \
         proxy_set_header Host $host; \
         proxy_set_header X-Real-IP $remote_addr; \
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \

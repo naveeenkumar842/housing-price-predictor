@@ -1,9 +1,9 @@
-# Dockerfile (Place in root directory)
+# Dockerfile (Root directory)
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
@@ -13,17 +13,17 @@ RUN apt-get update && apt-get install -y \
 # Upgrade pip
 RUN pip install --upgrade pip setuptools wheel
 
-# Copy backend files
+# Copy and install backend requirements
 COPY backend/requirements.txt .
 RUN pip install -r requirements.txt
 
-# Copy the entire backend
+# Copy backend code
 COPY backend/ .
 
 # Create directories
 RUN mkdir -p /app/data /app/models /app/logs
 
-# Train the model
+# Train model
 RUN python -m app.train_model
 
 EXPOSE 8000
