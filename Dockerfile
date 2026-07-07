@@ -1,3 +1,4 @@
+# Dockerfile (Place in root directory)
 FROM python:3.11-slim
 
 WORKDIR /app

@@ -1,25 +1,22 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// Use relative URL since nginx proxies /api
-const API_BASE_URL = '/api';
+// Use relative URL for Render
+const API_BASE_URL = '';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
   },
   timeout: 30000,
 });
 
-// Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
-      const message = error.response.data?.detail || error.response.data?.message || 'Server error';
-      toast.error(message);
+      toast.error(error.response.data?.detail || 'Server error');
     } else if (error.request) {
       toast.error('Cannot connect to server');
     } else {
@@ -30,27 +27,27 @@ api.interceptors.response.use(
 );
 
 export const predictPrice = async (features) => {
-  const response = await api.post('/predict', { features });
+  const response = await api.post('/api/predict', { features });
   return response.data;
 };
 
 export const predictBatch = async (featuresList) => {
-  const response = await api.post('/predict/batch', { features: featuresList });
+  const response = await api.post('/api/predict/batch', { features: featuresList });
   return response.data;
 };
 
 export const getModelInfo = async () => {
-  const response = await api.get('/model-info');
+  const response = await api.get('/api/model-info');
   return response.data;
 };
 
 export const getMarketStats = async () => {
-  const response = await api.get('/market/stats');
+  const response = await api.get('/api/market/stats');
   return response.data;
 };
 
 export const getHealth = async () => {
-  const response = await api.get('/health');
+  const response = await api.get('/api/health');
   return response.data;
 };
 
