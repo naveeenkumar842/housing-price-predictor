@@ -2,29 +2,40 @@ import joblib
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import os
 
 class HousingPriceModel:
     def __init__(self):
-        self.model = None
-        self.scaler = None
-        self.metrics = None
         self.feature_names = [
             'square_footage', 'bedrooms', 'bathrooms', 'year_built',
             'lot_size', 'distance_to_city_center', 'school_rating'
         ]
+        self.model = None
+        self.scaler = None
+        self.metrics = None
         self.load_models()
     
     def load_models(self):
         """Load the trained model, scaler, and metrics"""
-        try:
-            self.model = joblib.load('models/model.pkl')
-            self.scaler = joblib.load('models/scaler.pkl')
-            self.metrics = joblib.load('models/metrics.pkl')
-            print("✅ Models loaded successfully!")
-        except FileNotFoundError as e:
-            print(f"⚠️ Model files not found: {e}")
-            print("Please run train_model.py first.")
-            self._create_dummy_model()
+        model_path = Path('/app/models/model.pkl')
+        scaler_path = Path('/app/models/scaler.pkl')
+        metrics_path = Path('/app/models/metrics.pkl')
+        
+        if model_path.exists() and scaler_path.exists() and metrics_path.exists():
+            try:
+                self.model = joblib.load(model_path)
+                self.scaler = joblib.load(scaler_path)
+                self.metrics = joblib.load(metrics_path)
+                print("✅ Models loaded successfully!")
+                return
+            except Exception as e:
+                print(f"⚠️ Error loading models: {e}")
+                print("🔄 Creating dummy model...")
+        else:
+            print("⚠️ Model files not found. Creating dummy model for demonstration...")
+        
+        # Create dummy model if loading fails
+        self._create_dummy_model()
     
     def _create_dummy_model(self):
         """Create a dummy model if no trained model exists"""
@@ -32,7 +43,7 @@ class HousingPriceModel:
         import numpy as np
         
         self.model = RandomForestRegressor(n_estimators=10, random_state=42)
-        # Dummy feature importance for demonstration
+        # Set dummy feature importances
         self.model.feature_importances_ = np.array([0.3, 0.15, 0.1, 0.05, 0.2, 0.1, 0.1])
         self.scaler = None
         self.metrics = {
@@ -53,10 +64,8 @@ class HousingPriceModel:
     
     def predict(self, features_dict):
         """Make a single prediction"""
-        # Convert dict to DataFrame with correct feature order
         df = pd.DataFrame([features_dict])[self.feature_names]
         
-        # Scale features if scaler exists
         if self.scaler:
             X_scaled = self.scaler.transform(df)
         else:
