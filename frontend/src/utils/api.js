@@ -1,27 +1,41 @@
-// frontend/src/utils/api.js
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// Use relative URL for Render proxy
-const API_BASE_URL = '/api';
+// Use the EXACT backend URL
+const API_BASE_URL = 'https://housing-backend-lsfd.onrender.com';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
   timeout: 30000,
 });
 
+// Add a request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log(`📤 Sending ${config.method.toUpperCase()} request to ${config.url}`);
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`📥 Received ${response.status} from ${response.config.url}`);
+    return response;
+  },
   (error) => {
     if (error.response) {
-      toast.error(error.response.data?.detail || 'Server error');
+      const message = error.response.data?.detail || error.response.data?.message || 'Server error';
+      toast.error(message);
     } else if (error.request) {
-      toast.error('Cannot connect to server');
+      toast.error('Cannot connect to server. Please check your network.');
     } else {
-      toast.error('Request failed');
+      toast.error('Request failed. Please try again.');
     }
     return Promise.reject(error);
   }

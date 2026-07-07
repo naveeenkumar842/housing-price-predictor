@@ -18,7 +18,7 @@ FROM nginx:alpine
 # Copy built assets
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Create nginx configuration with the PUBLIC backend URL
+# Simple nginx config - just serve static files
 RUN echo 'server { \
     listen 80; \
     server_name localhost; \
@@ -28,17 +28,6 @@ RUN echo 'server { \
         root /usr/share/nginx/html; \
         index index.html index.htm; \
         try_files $uri $uri/ /index.html; \
-    } \
-    \
-    location /api/ { \
-        proxy_pass https://housing-backend.onrender.com/; \
-        proxy_set_header Host $host; \
-        proxy_set_header X-Real-IP $remote_addr; \
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-        proxy_set_header X-Forwarded-Proto $scheme; \
-        proxy_connect_timeout 30s; \
-        proxy_send_timeout 30s; \
-        proxy_read_timeout 30s; \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
