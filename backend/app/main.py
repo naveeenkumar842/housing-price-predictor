@@ -105,6 +105,31 @@ async def get_model_info():
 # ============================================
 # MARKET STATS ENDPOINT - ADD THIS
 # ============================================
+
+
+import json
+import numpy as np
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
+# Add helper function to convert numpy types
+def convert_to_serializable(obj):
+    """Convert numpy types to Python native types for JSON serialization"""
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, pd.Series):
+        return obj.to_list()
+    elif isinstance(obj, dict):
+        return {k: convert_to_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_serializable(item) for item in obj]
+    else:
+        return obj
+
 @app.get("/market/stats")
 async def get_market_stats():
     """
@@ -140,21 +165,22 @@ async def get_market_stats():
                 'school_rating': np.random.uniform(5, 10, n_samples),
                 'price': np.random.randint(150000, 400000, n_samples)
             })
+            print(f"✅ Created sample dataset with {len(df)} rows")
         
-        # Calculate statistics
+        # Calculate statistics - convert all to Python types
         stats = {
-            'total_houses': len(df),
-            'avg_price': df['price'].mean(),
-            'avg_price_inr': format_inr(df['price'].mean()),
-            'min_price': df['price'].min(),
-            'min_price_inr': format_inr(df['price'].min()),
-            'max_price': df['price'].max(),
-            'max_price_inr': format_inr(df['price'].max()),
-            'avg_square_footage': df['square_footage'].mean(),
-            'avg_bedrooms': df['bedrooms'].mean(),
-            'avg_bathrooms': df['bathrooms'].mean(),
-            'avg_year_built': df['year_built'].mean(),
-            'avg_school_rating': df['school_rating'].mean()
+            'total_houses': int(len(df)),
+            'avg_price': float(df['price'].mean()),
+            'avg_price_inr': format_inr(float(df['price'].mean())),
+            'min_price': float(df['price'].min()),
+            'min_price_inr': format_inr(float(df['price'].min())),
+            'max_price': float(df['price'].max()),
+            'max_price_inr': format_inr(float(df['price'].max())),
+            'avg_square_footage': float(df['square_footage'].mean()),
+            'avg_bedrooms': float(df['bedrooms'].mean()),
+            'avg_bathrooms': float(df['bathrooms'].mean()),
+            'avg_year_built': float(df['year_built'].mean()),
+            'avg_school_rating': float(df['school_rating'].mean())
         }
         
         # Price distribution
@@ -164,24 +190,30 @@ async def get_market_stats():
         distribution = df['price_range'].value_counts()
         
         distribution_list = []
+        total = len(df)
         for label in labels:
-            count = distribution.get(label, 0)
+            count = int(distribution.get(label, 0))
             distribution_list.append({
                 'price_range': label,
-                'count': int(count),
-                'percentage': round((count / len(df)) * 100, 2)
+                'count': count,
+                'percentage': round((count / total) * 100, 2) if total > 0 else 0
             })
         
-        # Feature correlations
+        # Feature correlations - convert to Python types
         feature_cols = ['square_footage', 'bedrooms', 'bathrooms', 'year_built', 
                         'lot_size', 'distance_to_city_center', 'school_rating']
         correlations = []
         for col in feature_cols:
             if col in df.columns:
                 corr = df[col].corr(df['price'])
+                # Handle NaN or None
+                if pd.isna(corr):
+                    corr_value = 0
+                else:
+                    corr_value = float(corr)
                 correlations.append({
                     'feature': col,
-                    'correlation': round(corr, 3) if not pd.isna(corr) else 0
+                    'correlation': round(corr_value, 3)
                 })
         
         # Feature importance from model
@@ -189,20 +221,32 @@ async def get_market_stats():
         if model_instance.metrics and 'feature_importance' in model_instance.metrics:
             top_features = sorted(
                 model_instance.metrics['feature_importance'],
-                key=lambda x: x['importance'],
+                key=lambda x: x.get('importance', 0),
                 reverse=True
             )[:5]
+            # Ensure values are Python types
+            for feature in top_features:
+                if 'importance' in feature:
+                    feature['importance'] = float(feature['importance'])
         
-        return {
+        # Build response with all Python types
+        response = {
             'stats': stats,
             'distribution': distribution_list,
             'correlations': sorted(correlations, key=lambda x: abs(x['correlation']), reverse=True),
             'top_features': top_features
         }
         
+        return response
+        
     except Exception as e:
         print(f"❌ Error in market stats: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Market stats error: {str(e)}")
+    
 
+
+    
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
